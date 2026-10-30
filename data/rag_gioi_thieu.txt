@@ -1,0 +1,26 @@
+GIỚI THIỆU VỀ RAG (RETRIEVAL-AUGMENTED GENERATION)
+
+RAG là gì?
+RAG, viết tắt của Retrieval-Augmented Generation, là một kỹ thuật kết hợp giữa truy xuất thông tin (retrieval) và sinh văn bản (generation) của mô hình ngôn ngữ lớn (LLM). Thay vì chỉ dựa vào kiến thức đã học sẵn trong tham số, RAG cho phép mô hình tra cứu tài liệu bên ngoài trước khi trả lời. Nhờ đó câu trả lời bám sát dữ liệu thật và giảm hiện tượng "bịa đặt" (hallucination).
+
+Vì sao cần RAG?
+Mô hình ngôn ngữ lớn có hai hạn chế chính. Thứ nhất, kiến thức bị đóng băng tại thời điểm huấn luyện, không biết thông tin mới. Thứ hai, mô hình có thể bịa ra thông tin nghe hợp lý nhưng sai. RAG giải quyết cả hai bằng cách cung cấp cho mô hình những đoạn tài liệu liên quan ngay tại thời điểm hỏi, kèm theo khả năng trích dẫn nguồn.
+
+Các thành phần chính của một hệ thống RAG:
+1. Embedding model: mô hình chuyển văn bản thành vector số. Các câu có ý nghĩa gần nhau sẽ có vector gần nhau trong không gian nhiều chiều.
+2. Vector database: nơi lưu trữ và tìm kiếm vector theo độ tương đồng. Ví dụ phổ biến gồm FAISS, Qdrant, Milvus và pgvector.
+3. Retriever: bộ phận nhận câu hỏi, chuyển thành vector và tìm ra các đoạn tài liệu gần nghĩa nhất.
+4. LLM (bộ sinh): nhận câu hỏi cùng các đoạn tài liệu truy xuất được, rồi sinh ra câu trả lời cuối cùng.
+
+Quy trình hoạt động của RAG gồm hai giai đoạn.
+Giai đoạn offline (ingest): đọc tài liệu, cắt thành các đoạn nhỏ gọi là chunk, tạo embedding cho từng chunk và lưu vào vector database. Giai đoạn này chỉ chạy lại khi tài liệu thay đổi.
+Giai đoạn online (truy vấn): khi người dùng đặt câu hỏi, hệ thống tạo embedding cho câu hỏi, tìm các chunk liên quan nhất, ghép chúng vào prompt và gửi cho LLM để sinh câu trả lời.
+
+Chunking là gì?
+Chunking là việc cắt một tài liệu dài thành nhiều đoạn nhỏ. Lý do là embedding và LLM đều có giới hạn độ dài đầu vào, và việc chia nhỏ giúp truy xuất chính xác hơn. Người ta thường cho các chunk chồng lấn nhau một phần (overlap) để tránh cắt đứt ý ở ranh giới giữa hai đoạn.
+
+Embedding và độ tương đồng cosine:
+Embedding biến mỗi đoạn văn bản thành một vector. Để đo mức độ giống nhau giữa hai vector, người ta thường dùng độ tương đồng cosine. Giá trị cosine càng gần 1 thì hai đoạn văn bản càng gần nghĩa. Khi vector đã được chuẩn hoá độ dài, tích vô hướng (inner product) chính bằng cosine.
+
+Ưu điểm của RAG so với fine-tuning:
+RAG không cần huấn luyện lại mô hình, chi phí thấp, dễ cập nhật tri thức mới chỉ bằng cách thêm tài liệu, và có thể trích dẫn nguồn minh bạch. Fine-tuning phù hợp hơn khi muốn thay đổi phong cách trả lời hoặc dạy mô hình kỹ năng mới, nhưng tốn kém và khó cập nhật thường xuyên.

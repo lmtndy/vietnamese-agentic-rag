@@ -1,0 +1,9 @@
+sentence-transformers
+google-genai
+pypdf
+python-dotenv
+numpy
+fastapi
+uvicorn[standard]
+qdrant-client
+langgraph
