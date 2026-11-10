@@ -7,3 +7,10 @@ fastapi
 uvicorn[standard]
 qdrant-client
 langgraph
+
+# evaluation (Module 06)
+mlflow
+datasets
+
+# tests
+pytest

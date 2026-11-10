@@ -4,3 +4,7 @@ __pycache__/
 .env
 index/
 cleanup.sh
+evaluation/data/
+mlflow.db
+mlruns/
+mlartifacts/

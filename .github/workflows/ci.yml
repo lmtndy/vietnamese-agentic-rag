@@ -1,0 +1,28 @@
+# Chạy tự động mỗi lần push lên main hoặc mở pull request.
+# Chỉ chạy phần NHẸ (không tải model): kiểm tra cú pháp + unit test.
+# Phần eval nặng (model + Qdrant) chạy riêng: python -m evaluation.run_retrieval_eval
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Check that every file compiles
+        run: python -m compileall -q src evaluation tests
+
+      - name: Install test tools
+        run: pip install pytest
+
+      - name: Unit tests
+        run: python -m pytest -q

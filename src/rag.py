@@ -14,7 +14,7 @@ from src import config
 
 
 class RAGEngine:
-    def __init__(self):
+    def __init__(self, require_llm: bool = True):
         # Bi-encoder: mã hóa câu hỏi thành vector để tìm trong Qdrant
         self.embedder = SentenceTransformer(config.EMBED_MODEL)
         # Cross-encoder: đọc (câu hỏi + chunk) cùng lúc để chấm điểm liên quan chính xác
@@ -22,6 +22,9 @@ class RAGEngine:
         # Kết nối tới Qdrant (vector DB chạy riêng)
         self.qdrant = QdrantClient(url=config.QDRANT_URL)
 
+        if not require_llm:     # evaluation chỉ đo retrieve + rerank -> không cần Gemini
+            self.gemini = None
+            return
         if not config.GOOGLE_API_KEY:
             raise RuntimeError(
                 "Chưa có GOOGLE_API_KEY. Tạo file .env theo mẫu .env.example rồi dán key vào."
@@ -29,14 +32,14 @@ class RAGEngine:
         self.gemini = genai.Client(api_key=config.GOOGLE_API_KEY)
 
     # ---------- BƯỚC 1: RETRIEVE (lấy thô, nhanh) ----------
-    def retrieve(self, query: str, top_n: int = None):
+    def retrieve(self, query: str, top_n: int = None, collection: str = None):
         """Qdrant trả top-N chunk gần nghĩa nhất (bi-encoder + cosine)."""
         top_n = top_n or config.TOP_N
         q_vec = self.embedder.encode(
             [f"query: {query}"], normalize_embeddings=True
         )[0].tolist()
         hits = self.qdrant.query_points(
-            collection_name=config.QDRANT_COLLECTION,
+            collection_name=collection or config.QDRANT_COLLECTION,
             query=q_vec,
             limit=top_n,
             with_payload=True,
