@@ -1,0 +1,11 @@
+# Runtime dependencies of the API — installed in the Docker image.
+# (requirements.txt adds the evaluation and test tools on top.)
+sentence-transformers
+google-genai
+pypdf
+python-dotenv
+numpy
+fastapi
+uvicorn[standard]
+qdrant-client
+langgraph

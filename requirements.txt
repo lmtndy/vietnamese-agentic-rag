@@ -1,12 +1,5 @@
-sentence-transformers
-google-genai
-pypdf
-python-dotenv
-numpy
-fastapi
-uvicorn[standard]
-qdrant-client
-langgraph
+# serving (also used by the Docker image)
+-r requirements-serve.txt
 
 # evaluation (Module 06)
 mlflow

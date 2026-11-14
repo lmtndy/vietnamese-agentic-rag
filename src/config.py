@@ -23,7 +23,8 @@ CHUNK_SIZE = 500       # số ký tự mỗi đoạn
 CHUNK_OVERLAP = 100    # số ký tự chồng lấn giữa 2 đoạn liền nhau
 
 # --- Qdrant (VECTOR DATABASE chạy riêng, thay cho FAISS) ---
-QDRANT_URL = "http://localhost:6333"
+# Chạy thẳng trên máy: localhost. Trong docker-compose: biến môi trường QDRANT_URL=http://qdrant:6333
+QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
 QDRANT_COLLECTION = "rag_chunks"
 
 # --- Retrieve-then-rerank ---

@@ -86,6 +86,27 @@ The dataset is downloaded at run time and is not stored in this repository.
 
 ## Quickstart
 
+### Option A — Docker Compose (API + Qdrant, no Python setup)
+
+```bash
+git clone https://github.com/lmtndy/vietnamese-agentic-rag.git
+cd vietnamese-agentic-rag
+cp .env.example .env                                # add your GOOGLE_API_KEY
+docker compose up -d --build                        # first start downloads ~1 GB of models into a volume
+docker compose run --rm api python -m src.ingest    # index the files in data/
+# → http://localhost:8000/docs
+docker compose down                                 # stop; indexed data and models stay in volumes
+```
+
+| | |
+|---|---|
+| Image | `python:3.11-slim` + CPU-only PyTorch (~1.65 GB), runs as a non-root user, built in CI on every push |
+| Models | downloaded on first start into the `hf_models` volume, not baked into the image |
+| Network | API published on `127.0.0.1:8000` only; Qdrant has no published port — only the API container can reach it |
+| Health | Docker `HEALTHCHECK` calls `/health` (container shows `healthy` once the models are loaded) |
+
+### Option B — Local Python
+
 ```bash
 git clone https://github.com/lmtndy/vietnamese-agentic-rag.git
 cd vietnamese-agentic-rag
@@ -135,15 +156,20 @@ All settings (models, chunk size, top-N / top-K, retries) live in `src/config.py
 │   ├── build_golden.py        # build the UIT-ViQuAD question set
 │   └── run_retrieval_eval.py  # bi-encoder vs. rerank, logged to MLflow
 ├── tests/             # unit tests (pytest), run by GitHub Actions on every push
-├── .github/workflows/ci.yml
+├── Dockerfile         # API image (CPU-only PyTorch, non-root, healthcheck)
+├── docker-compose.yml # API + Qdrant
+├── requirements-serve.txt  # runtime dependencies (image); requirements.txt adds eval + test tools
+├── .github/workflows/ci.yml  # jobs: unit tests + Docker image build
 └── NOTES.vi.md        # personal learning notes (Vietnamese)
 ```
 
 ## Limitations & next steps
 
 - [x] **Retrieval evaluation:** hit@k / MRR on UIT-ViQuAD 2.0, bi-encoder vs. reranking, chunk-size comparison in MLflow
-- [x] **CI:** unit tests on every push (GitHub Actions)
+- [x] **CI:** unit tests and a Docker image build on every push (GitHub Actions)
+- [x] **Docker Compose:** API + Qdrant with volumes, health check and localhost-only port
 - [ ] **Answer evaluation:** LLM-as-judge for answer correctness and faithfulness to the retrieved context
 - [ ] **Guardrails:** defenses against prompt injection through retrieved documents
-- [ ] Expose the agent through the API and add `docker-compose` for app + Qdrant
+- [ ] Expose the agent through the API; return a clear error (not HTTP 500) when the LLM call fails
+- [ ] Deploy the image to a cloud service with a release pipeline (CD)
 - The bundled sample data is a single short document — add your own documents to `data/`.

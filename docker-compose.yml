@@ -1,0 +1,32 @@
+# API + Qdrant in one command.
+#   cp .env.example .env               # put your GOOGLE_API_KEY in .env
+#   docker compose up -d --build       # first start downloads the models (~1 GB) into a volume
+#   docker compose run --rm api python -m src.ingest    # index the documents in ./data
+#   open http://localhost:8000/docs
+#   docker compose down                # stop (data and models stay in the volumes)
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.20.1
+    restart: unless-stopped
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    # No "ports": Qdrant is reachable only from the api container, not from the host or the LAN.
+
+  api:
+    build: .
+    image: vietnamese-agentic-rag:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      QDRANT_URL: http://qdrant:6333     # service name = hostname inside the compose network
+    ports:
+      - "127.0.0.1:8000:8000"            # this machine only; use an SSH tunnel from elsewhere
+    volumes:
+      - hf_models:/models                # embedding + reranker models, downloaded once
+      - ./data:/app/data:ro              # documents to index
+    depends_on:
+      - qdrant
+
+volumes:
+  qdrant_storage:
+  hf_models:

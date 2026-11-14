@@ -1,5 +1,5 @@
 # Chạy tự động mỗi lần push lên main hoặc mở pull request.
-# Chỉ chạy phần NHẸ (không tải model): kiểm tra cú pháp + unit test.
+# Job "test": phần NHẸ (không tải model) — kiểm tra cú pháp + unit test. Job "docker": build image API.
 # Phần eval nặng (model + Qdrant) chạy riêng: python -m evaluation.run_retrieval_eval
 name: CI
 
@@ -26,3 +26,12 @@ jobs:
 
       - name: Unit tests
         run: python -m pytest -q
+
+  docker:
+    # Builds the API image on every push, so a broken Dockerfile or dependency is caught early.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t vietnamese-agentic-rag:ci .
